@@ -7,7 +7,7 @@ We are a portfolio investment company and we make investments in the emerging ma
 Our goal is to establish a robust intelligent system to aid our value investing efforts using stock market data. We make investment decisions and based on intrinsic value of companies and do not trade on the basis of daily market volatility. Our profit realization strategy typically involves weekly, monthly and quarterly performance of stocks we buy or hold.
 
 ## Data
-We will be using MSFT data from yahoo finance api. Train set is Jan 2020 - Mar 2024. Test set is Mar 2024 - Sep 22, 2024
+We will be using MSFT data from yahoo finance api. Train set is Jan 2020 - Mar 2024. Test set is Mar 2024 - Oct 13, 2024
 
 ## Goal(s):
 
