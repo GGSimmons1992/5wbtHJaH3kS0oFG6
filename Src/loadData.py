@@ -18,10 +18,12 @@ get_ipython().run_line_magic('autosave', '5')
 
 
 def loadData(ticker):
-    train = yf.download(ticker, start="2020-01-01", end="2024-03-01")[['Close']]
-    test = yf.download(ticker, start="2024-03-01", end="2024-10-13")[['Close']]
-    train.reset_index(drop=True, inplace=True)
-    test.reset_index(drop=True, inplace=True)
+    train = yf.download(ticker, start="2020-01-01", end="2024-03-01")[['Close']].reset_index()
+    test = yf.download(ticker, start="2024-03-01", end="2024-10-13")[['Close']].reset_index()
+
+    train = train.rename(columns = {'Date' : 'ds', 'Close': 'y'})
+    test = test.rename(columns = {'Date' : 'ds', 'Close': 'y'})
+    
     return train,test
 
 
