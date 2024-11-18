@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
 import warnings
 import tensorflow as tf
 warnings.filterwarnings('ignore')
@@ -23,7 +29,10 @@ import sys
 sys.path.insert(0, "../Src/")
 import loadData
 
-%autosave 5
+get_ipython().run_line_magic('autosave', '5')
+
+
+# In[2]:
 
 
 def determineDifferenceOrder(data):
@@ -39,6 +48,9 @@ def determineDifferenceOrder(data):
             order += 1
             data = data.diff().dropna()
     return order
+
+
+# In[3]:
 
 
 def trainArima(data):
@@ -76,6 +88,9 @@ def trainArima(data):
     return arimaFit
 
 
+# In[4]:
+
+
 def saveModel(model,name):
     filename = f'../Models/{name}.pkl'
     if name in ['autoRegression','sarima','ExponentialSmoothing', 'prophet']:
@@ -85,12 +100,18 @@ def saveModel(model,name):
         model.save(filename)
 
 
+# In[5]:
+
+
 def trainSarima(train):
     print('Training Sarima')
     sarima = pm.auto_arima(train,stepwise=True,seasonal=True)
     print(sarima.summary())
     saveModel(sarima,'sarima')
     return sarima
+
+
+# In[6]:
 
 
 def trainAutoRegression(data):
@@ -108,6 +129,9 @@ def trainAutoRegression(data):
     saveModel(ar_model,'autoRegression')
     return ar_model
     
+
+
+# In[7]:
 
 
 def trainExponentialSmoothing(data):
@@ -147,6 +171,9 @@ def trainExponentialSmoothing(data):
     
 
 
+# In[8]:
+
+
 def trainProphet(data):
     print('Training Prophet')
     train, dev = trainDevSplit(data)
@@ -183,6 +210,9 @@ def trainProphet(data):
         
 
 
+# In[9]:
+
+
 def retrieveProphetParams():
     param_space = { 'growth' :['linear', 'logistic', 'flat'],
                    'n_changepoints': np.arange(0, 55, 5),
@@ -205,6 +235,9 @@ def retrieveProphetParams():
             chosenParameters[key] = np.random.choice(param_space[key])
     return chosenParameters
     
+
+
+# In[10]:
 
 
 def trainLSTM(data):
@@ -250,12 +283,18 @@ def trainLSTM(data):
         
 
 
+# In[11]:
+
+
 def trainDevSplit(data):
     totalRows = data.shape[0]
     trainDevCutoff = int(0.8 * totalRows)
     train = data.iloc[:trainDevCutoff]
     dev = data.iloc[trainDevCutoff:]
     return train,dev
+
+
+# In[12]:
 
 
 def compileLSTM(X,y,lstmUnits1,lstmUnits2,epochs):
@@ -266,6 +305,9 @@ def compileLSTM(X,y,lstmUnits1,lstmUnits2,epochs):
     model.compile(optimizer='adam', loss='mean_absolute_error',metrics=['mean_absolute_error'])
     model.fit(X, y, epochs=epochs, batch_size=32,verbose=0)
     return model
+
+
+# In[13]:
 
 
 def main():
@@ -279,5 +321,9 @@ def main():
     trainLSTM(train['y'])
 
 
+# In[14]:
+
+
 if __name__ == '__main__':
     main()
+
