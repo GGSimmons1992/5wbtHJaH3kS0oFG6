@@ -11,6 +11,7 @@ tf.get_logger().setLevel('ERROR')
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from statsmodels.tsa.stattools import adfuller
 
 import sys
 sys.path.insert(0, "../Src/")
@@ -34,6 +35,9 @@ def loadData(ticker):
     
     train = train.rename(columns = columnRenameDict)
     test = test.rename(columns = columnRenameDict)
+
+    train = createRollingAverageDF(train)
+    test = createRollingAverageDF(test)
     
     return train,test
 
@@ -58,6 +62,20 @@ def processDataForLSTM(data, timeStep=20):
 # In[4]:
 
 
+def createRollingAverageDF(df):
+    columns = [str(col) for col in df.columns]
+    for col in columns:
+        if col != 'ds':
+            df[col] = df[col].rolling(window=5).mean()
+            mean_value = np.nanmean(df[col])
+            # Fill NaN values with the mean
+            df[col] = np.where(np.isnan(df[col]), mean_value, df[col])
+    return df
+
+
+# In[5]:
+
+
 def main():
     train,test = loadData("MSFT")
     display(train)
@@ -70,7 +88,7 @@ def main():
     print('yTest.shape: ', yTest.shape)
 
 
-# In[5]:
+# In[6]:
 
 
 if __name__ == '__main__':

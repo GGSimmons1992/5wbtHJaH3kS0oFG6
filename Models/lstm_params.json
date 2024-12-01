@@ -1,1 +1,1 @@
-{"bestTrainScore": 51, "bestDevScore": 146, "bestLSTMUnits1": 126, "bestLSTMUnits2": 84, "bestEpochs": 91}
+{"bestTrainScore": 3665, "bestDevScore": 21839, "bestLSTMUnits1": 45, "bestLSTMUnits2": 30, "bestLSTMUnits3": 122, "bestEpochs": 85}
