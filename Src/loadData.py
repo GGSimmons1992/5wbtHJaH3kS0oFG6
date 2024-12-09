@@ -23,8 +23,7 @@ get_ipython().run_line_magic('autosave', '5')
 
 
 def loadData(ticker):
-    train = yf.download(ticker, start="2020-01-01", end="2024-03-01")[['Close','High','Low']].reset_index()
-    test = yf.download(ticker, start="2024-03-01", end="2024-10-13")[['Close','High','Low']].reset_index()
+    data = yf.download(ticker, start="2020-01-01", end="2024-10-13")[['Close','High','Low']].reset_index()
 
     columnRenameDict = {
         'Date' : 'ds',
@@ -33,16 +32,24 @@ def loadData(ticker):
         'Low': 'floor'
     }
     
-    train = train.rename(columns = columnRenameDict)
-    test = test.rename(columns = columnRenameDict)
+    data = data.rename(columns = columnRenameDict)
 
-    train = createRollingAverageDF(train)
-    test = createRollingAverageDF(test)
+    data = createRollingAverageDF(data)
     
-    return train,test
+    return data
 
 
 # In[3]:
+
+
+def splitData(data,tillDateAsString='2024-03-01'):
+    cutoff_date = pd.to_datetime(tillDateAsString)
+    train = data[data['ds'] <= cutoff_date]
+    test = data[data['ds'] > cutoff_date]
+    return train,test
+
+
+# In[4]:
 
 
 def processDataForLSTM(data, timeStep=20):
@@ -59,7 +66,7 @@ def processDataForLSTM(data, timeStep=20):
     
 
 
-# In[4]:
+# In[5]:
 
 
 def createRollingAverageDF(df):
@@ -73,11 +80,11 @@ def createRollingAverageDF(df):
     return df
 
 
-# In[5]:
+# In[6]:
 
 
 def main():
-    train,test = loadData("MSFT")
+    train,test = splitData(loadData("MSFT"))
     display(train)
     display(test)
     XTrain,yTrain = processDataForLSTM(train['y'])
@@ -88,7 +95,7 @@ def main():
     print('yTest.shape: ', yTest.shape)
 
 
-# In[6]:
+# In[7]:
 
 
 if __name__ == '__main__':
