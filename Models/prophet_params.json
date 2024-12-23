@@ -1,0 +1,1 @@
+{"growth": "logistic", "n_changepoints": 45, "changepoint_range": 0.5, "yearly_seasonality": true, "weekly_seasonality": false, "daily_seasonality": false, "seasonality_mode": "additive", "seasonality_prior_scale": 12.413007019185109, "changepoint_prior_scale": 0.0025275655205444615, "interval_width": 0.7612888982233235, "uncertainty_samples": 500}

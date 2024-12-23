@@ -97,7 +97,7 @@ def compareSimplePickleModel(data,modelName,paramsFile = ''):
     if paramsFile != '':
         with open(f'../Models/{paramsFile}.json') as d:
             params = json.load(d)
-    periods = 10
+    periods = 5
     while (continueTraining):
         predict = makePrediction(train['y'],modelName,params,periods)
         fullPredict += predict
@@ -111,13 +111,4 @@ def compareSimplePickleModel(data,modelName,paramsFile = ''):
     print('len(fullPredict) ',len(fullPredict))
     print("len(validation['y']) ",len(validation['y']))
     compare(validation['ds'],validation['y'],fullPredict,modelName)
-
-def makeProphetPrediction(data,periods):
-    model = tm.trainProphet(data)
-    future = model.make_future_dataframe(periods=periods,include_history=False)
-    #capValue = test['y'].max() * 1.1
-    #future['cap'] = capValue
-    #future['floor'] = 0
-    print('future.shape ',future.shape)
-    return model.predict(future)
 

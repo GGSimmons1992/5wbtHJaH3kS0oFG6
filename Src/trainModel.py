@@ -19,7 +19,7 @@ import pmdarima as pm
 from statsmodels.tsa.api import AutoReg
 import pickle
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing, Holt, ExponentialSmoothing
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from prophet import Prophet
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
@@ -226,19 +226,106 @@ def trainBestExponentialSmoothing(data):
 # In[11]:
 
 
-def trainProphet(data,saveModelFile=False):
+"""
+def trainProphet(data,saveModelFile=False,params = {'seasonality_mode'='multiplicative'}):
     if (saveModelFile):
         print('Training Prophet')
 
-    model = Prophet(seasonality_mode='multiplicative')
+    model = Prophet()
     model.fit(data)
     if (saveModelFile):
         saveModel(model, 'prophet')
     return model
-        
+"""    
 
 
 # In[12]:
+
+
+def trainBestProphet(data):
+    print('Training Prophet')
+    train, dev = trainDevSplit(data)
+    bestMAE = np.inf
+    bestParams = {}
+    
+    for _ in range(20):
+        params = retrieveProphetParams()
+        forecast = makeFullProphetPrediction(params,train,data)
+        mae = mean_absolute_error(np.array(dev['y']).reshape(-1,), np.array(forecast).reshape(-1,))
+        if mae < bestMAE:
+            bestMAE = mae
+            bestParams = params
+
+    with open('../Models/prophet_params.json', 'w') as f:
+        json.dump(bestParams, f)
+    
+    model = Prophet(**bestParams)
+    model.fit(data)
+    saveModel(model, 'prophet')
+    return model
+
+
+# In[13]:
+
+
+def makeFullProphetPrediction(params,train,data,periods = 5):
+    continuePrediction = True
+    fullPredict = []
+    while(continuePrediction):
+        forecast = makeSegmentedProphetPrediction(params,train,periods)
+        fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
+        train = data.iloc[:(train.shape[0]+periods)]
+        if (train.shape[0]+periods >= data.shape[0]):
+            periods = data.shape[0] - train.shape[0]
+            forecast = makeSegmentedProphetPrediction(params,train,periods)
+            fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
+            continuePrediction = False
+    return fullPredict
+
+
+# In[14]:
+
+
+def makeSegmentedProphetPrediction(params,data,periods = 5):
+    model = Prophet(**params)
+    model.fit(data)
+    future = model.make_future_dataframe(periods=periods,include_history=False)
+    future['cap'] = data['cap'].iloc[-1]
+    future['floor'] = data['floor'].iloc[-1]
+    return model.predict(future)
+
+
+# In[15]:
+
+
+def retrieveProphetParams():
+    param_space = { 'growth' :['linear', 'logistic', 'flat'],
+                   'n_changepoints': np.arange(0, 55, 5),
+                   'changepoint_range': (0.5, 0.5),
+                   'yearly_seasonality': [True, False],
+                   'weekly_seasonality': [True, False],
+                   'daily_seasonality': [True, False],
+                   'seasonality_mode': ['additive', 'multiplicative'],
+                   'seasonality_prior_scale': (5.0, 15.0),
+                   'changepoint_prior_scale': (0.0, 0.1),
+                   'interval_width': (0.2, 0.8),
+                   'uncertainty_samples': [500, 1000, 1500, 2000]
+                  }
+    chosenParameters = dict()
+    for key in param_space:
+        if key in ['changepoint_range','seasonality_prior_scale','changepoint_prior_scale','interval_width']:
+            bounds = param_space[key]
+            chosenParameters[key] = np.random.uniform(bounds[0],bounds[1])
+        else:
+            chosenParameters[key] = np.random.choice(param_space[key])
+        if(isinstance(chosenParameters[key], np.int64)):
+            chosenParameters[key] = int(chosenParameters[key])
+        elif(isinstance(chosenParameters[key], np.bool_)):
+            chosenParameters[key] = bool(chosenParameters[key])
+    return chosenParameters
+
+
+# In[16]:
 
 
 def trainLSTM(data):
@@ -288,7 +375,7 @@ def trainLSTM(data):
         
 
 
-# In[13]:
+# In[17]:
 
 
 def trainDevSplit(data):
@@ -296,10 +383,11 @@ def trainDevSplit(data):
     trainDevCutoff = int(0.8 * totalRows)
     train = data.iloc[:trainDevCutoff]
     dev = data.iloc[trainDevCutoff:]
+
     return train,dev
 
 
-# In[14]:
+# In[18]:
 
 
 def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
@@ -313,7 +401,7 @@ def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
     return model
 
 
-# In[15]:
+# In[19]:
 
 
 def main():
@@ -327,13 +415,12 @@ def main():
     if exists('../Models/ExponentialSmoothing.pkl') == False:
         trainBestExponentialSmoothing(train['y'])
     if exists('../Models/prophet.pkl') == False:
-        trainProphet(train,True)
-    
+        trainBestProphet(train) 
     if exists('../Models/LSTM_.h5') == False:
         trainLSTM(train['y'])
 
 
-# In[16]:
+# In[20]:
 
 
 if __name__ == '__main__':
