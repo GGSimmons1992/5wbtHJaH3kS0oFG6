@@ -245,15 +245,15 @@ def trainProphet(data,saveModelFile=False,params = {'seasonality_mode'='multipli
 def trainBestProphet(data):
     print('Training Prophet')
     train, dev = trainDevSplit(data)
-    bestMAE = np.inf
+    bestMSE = np.inf
     bestParams = {}
     
-    for _ in range(20):
+    for _ in range(30):
         params = retrieveProphetParams()
         forecast = makeFullProphetPrediction(params,train,data)
-        mae = mean_absolute_error(np.array(dev['y']).reshape(-1,), np.array(forecast).reshape(-1,))
-        if mae < bestMAE:
-            bestMAE = mae
+        mse = mean_squared_error(np.array(dev['y']).reshape(-1,), np.array(forecast).reshape(-1,))
+        if mse < bestMSE:
+            bestMSE = mse
             bestParams = params
 
     with open('../Models/prophet_params.json', 'w') as f:
