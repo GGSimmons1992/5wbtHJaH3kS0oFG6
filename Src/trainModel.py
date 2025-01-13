@@ -250,7 +250,7 @@ def trainBestProphet(data):
     
     for _ in range(30):
         params = retrieveProphetParams()
-        forecast = makeFullProphetPrediction(params,train,data)
+        forecast,_ = makeFullProphetPrediction(params,train,data)
         mse = mean_squared_error(np.array(dev['y']).reshape(-1,), np.array(forecast).reshape(-1,))
         if mse < bestMSE:
             bestMSE = mse
@@ -271,6 +271,7 @@ def trainBestProphet(data):
 def makeFullProphetPrediction(params,train,data,periods = 5):
     continuePrediction = True
     fullPredict = []
+    fullForecast = None
     while(continuePrediction):
         forecast = makeSegmentedProphetPrediction(params,train,periods)
         fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
@@ -278,9 +279,13 @@ def makeFullProphetPrediction(params,train,data,periods = 5):
         if (train.shape[0]+periods >= data.shape[0]):
             periods = data.shape[0] - train.shape[0]
             forecast = makeSegmentedProphetPrediction(params,train,periods)
+            if fullForecast is None:
+                fullForecast = forecast
+            else:
+                fullForecast = pd.concat([fullForecast, forecast], ignore_index=True)
             fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
             continuePrediction = False
-    return fullPredict
+    return fullPredict, fullForecast
 
 
 # In[14]:
@@ -420,7 +425,7 @@ def main():
         trainLSTM(train['y'])
 
 
-# In[20]:
+# In[ ]:
 
 
 if __name__ == '__main__':
