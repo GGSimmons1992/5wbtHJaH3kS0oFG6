@@ -9,11 +9,12 @@ import pandas as pd
 import trainModel as tm
 import pmdarima as pm
 from IPython.display import display
+from matplotlib.lines import Line2D
 
 def reshapeTo1DArray(data):
     return np.array(data).reshape(-1,)
 
-def plotComparison(date,test,predict,folder,title):
+def plotComparison(date,test,predict,folder,title,buySellSuggestions = None):
     
     date = reshapeTo1DArray(date)
     test = reshapeTo1DArray(test)
@@ -23,8 +24,21 @@ def plotComparison(date,test,predict,folder,title):
     
     resultMessage = f'{title} MAE: {mae}'
     plt.figure()
-    plt.plot(date,test,label='actual')
-    plt.plot(date,predict,label='predicted')
+    plt.plot(date,test,linestyle =':',color='k',label='actual')
+    plt.plot(date,predict,linestyle='--',color='orange',label='predicted')
+    if buySellSuggestions is not None:
+        plt.plot(date, buySellSuggestions['BU'], linestyle='--', color='b')
+        plt.plot(date, buySellSuggestions['BL'], linestyle='--', color='b')
+        bollinger_legend = Line2D([0], [0], color='b', linestyle='--', label='bollinger bands')
+
+        buy = buySellSuggestions[buySellSuggestions['predict'] < buySellSuggestions['BL']]
+        sell = buySellSuggestions[buySellSuggestions['predict'] > buySellSuggestions['BU']]
+
+        plt.scatter(buy['ds'],buy['predict'],marker='^', color='r',label = 'buy',s=100)
+        plt.scatter(sell['ds'],sell['predict'],marker='v', color='g',label = 'sell',s=100)
+
+        bollinger_legend = Line2D([0], [0], color='b', linestyle='--', label='bollinger bands')
+        plt.legend(handles=[bollinger_legend], loc='best')
     plt.xlabel('date')
     plt.ylabel('price')
     plt.title(resultMessage) 
@@ -63,21 +77,44 @@ def loadModel(data,modelName,params):
         model = tm.trainExponentialSmoothing(data,params)
     return model
 
-def compare(date,test,predict,modelName):
-    test = interpolateMissingValues(test)
+def compare(validation, predict, modelName):
+    validation = interpolateMissingValues(validation)
     predict = interpolateMissingValues(predict)
-    
-    scaledTest = standardScale(test)
+
+    min_length = min(validation.shape[0], len(predict))
+    validation = validation.iloc[-min_length:]
+    predict = predict[-min_length:]
+
+    date = validation['ds']
+    actual = validation['y']
+
+    buySellSuggestions = pd.DataFrame({
+        'ds': date,
+        'predict': predict,
+        'BU': validation['BU'],
+        'BL': validation['BL']
+    }, columns=['ds', 'predict', 'BU', 'BL'])
+
+    scaledTest = standardScale(actual)
     scaledPredict = standardScale(predict)
-    seasonalTest = extractSeasonality(test)
+    seasonalTest = extractSeasonality(actual)
     seasonalPredict = extractSeasonality(predict)
     seasonalScaledTest = extractSeasonality(scaledTest)
     seasonalScaledPredict = extractSeasonality(scaledPredict)
 
-    print(plotComparison(date,test,predict,'RawPrice',f'{modelName} Raw Price'))
-    print(plotComparison(date,scaledTest,scaledPredict,'ScaledPrice',f'{modelName} Scaled Price'))
-    print(plotComparison(date,seasonalTest,seasonalPredict,'RawSeasonality',f'{modelName} Raw Seasonality'))
-    print(plotComparison(date,seasonalScaledTest,seasonalScaledPredict,'ScaledSeasonality',f'{modelName} Scaled Seasonality'))
+    plot_data = [
+        (actual, predict, 'RawPrice', f'{modelName} Raw Price'),
+        (scaledTest, scaledPredict, 'ScaledPrice', f'{modelName} Scaled Price'),
+        (seasonalTest, seasonalPredict, 'RawSeasonality', f'{modelName} Raw Seasonality'),
+        (seasonalScaledTest, seasonalScaledPredict, 'ScaledSeasonality', f'{modelName} Scaled Seasonality')
+    ]
+
+    for data, pred, folder, title in plot_data:
+        if folder == 'RawPrice':
+            plotComparison(date, data, pred, folder, title, buySellSuggestions)
+        else:
+            plotComparison(date, data, pred, folder, title)
+
 
 def makePrediction(data,modelName,params,periods):
     if modelName == "SARIMA":
@@ -108,7 +145,5 @@ def compareSimplePickleModel(data,modelName,paramsFile = ''):
             fullPredict += predict
             continueTraining = False
             
-    print('len(fullPredict) ',len(fullPredict))
-    print("len(validation['y']) ",len(validation['y']))
-    compare(validation['ds'],validation['y'],fullPredict,modelName)
+    compare(validation,fullPredict,modelName)
 
