@@ -274,15 +274,13 @@ def makeFullProphetPrediction(params,train,data,periods = 5):
     fullForecast = None
     while(continuePrediction):
         forecast = makeSegmentedProphetPrediction(params,train,periods)
+        fullForecast = returnFullForecast(fullForecast,forecast)
         fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
         train = data.iloc[:(train.shape[0]+periods)]
         if (train.shape[0]+periods >= data.shape[0]):
             periods = data.shape[0] - train.shape[0]
             forecast = makeSegmentedProphetPrediction(params,train,periods)
-            if fullForecast is None:
-                fullForecast = forecast
-            else:
-                fullForecast = pd.concat([fullForecast, forecast], ignore_index=True)
+            fullForecast = returnFullForecast(fullForecast,forecast)
             fullPredict += list(np.array(forecast['yhat']).reshape(-1,))
             continuePrediction = False
     return fullPredict, fullForecast
@@ -301,6 +299,17 @@ def makeSegmentedProphetPrediction(params,data,periods = 5):
 
 
 # In[15]:
+
+
+def returnFullForecast(fullForecast,forecast):
+    if fullForecast is None:
+        fullForecast = forecast
+    else:
+        fullForecast = pd.concat([fullForecast, forecast], axis=0)
+    return fullForecast
+
+
+# In[16]:
 
 
 def retrieveProphetParams():
@@ -330,7 +339,7 @@ def retrieveProphetParams():
     return chosenParameters
 
 
-# In[16]:
+# In[17]:
 
 
 def trainLSTM(data):
@@ -380,7 +389,7 @@ def trainLSTM(data):
         
 
 
-# In[17]:
+# In[18]:
 
 
 def trainDevSplit(data):
@@ -392,7 +401,7 @@ def trainDevSplit(data):
     return train,dev
 
 
-# In[18]:
+# In[19]:
 
 
 def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
@@ -406,7 +415,7 @@ def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
     return model
 
 
-# In[19]:
+# In[20]:
 
 
 def main():
@@ -425,7 +434,7 @@ def main():
         trainLSTM(train['y'])
 
 
-# In[ ]:
+# In[21]:
 
 
 if __name__ == '__main__':
