@@ -12,3 +12,10 @@ We will be using MSFT data from yahoo finance api. Train set is Jan 2020 - Mar 2
 ## Goal(s):
 
 Predict stock price valuations on a daily, weekly and monthly basis. Recommend BUY, HOLD, SELL decisions. Maximize capital returns, minimize losses. Ideally a loss should never happen. Minimize HOLD period.
+
+## Results:
+When it came to predicting price, the model with the lowest MAE was the Autoregression with an
+MAE of $6.99.
+
+In regards of shape, when comparing the MAE values with seasonality, Prophet did the best
+with an MAE of 2.49.
