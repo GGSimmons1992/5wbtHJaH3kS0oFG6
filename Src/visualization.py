@@ -43,8 +43,8 @@ def plotComparison(date,test,predict,folder,title,buySellSuggestions = None):
     plt.ylabel('price')
     plt.title(resultMessage) 
     plt.legend()
-    plt.show()
     plt.savefig(f'../Figures/{folder}/{fileName}')
+    plt.show()
     return resultMessage
 
 def standardScale(data):

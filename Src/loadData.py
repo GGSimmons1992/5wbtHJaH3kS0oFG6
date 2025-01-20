@@ -34,8 +34,6 @@ def loadData(ticker):
     
     data = data.rename(columns = columnRenameDict)
 
-    data = createRollingAverageDF(data)
-
     data = createBollingerBands(data,20)
     
     return data
@@ -71,20 +69,6 @@ def processDataForLSTM(data, timeStep=20):
 # In[5]:
 
 
-def createRollingAverageDF(df):
-    columns = [str(col) for col in df.columns]
-    for col in columns:
-        if col != 'ds':
-            df[col] = df[col].rolling(window=5).mean()
-            mean_value = np.nanmean(df[col])
-            # Fill NaN values with the mean
-            df[col] = np.where(np.isnan(df[col]), mean_value, df[col])
-    return df
-
-
-# In[6]:
-
-
 def createBollingerBands(df,n=5,m=2):
     # Using implementation from https://tcoil.info/compute-bollinger-bands-for-stocks-with-python-and-pandas/
     TP = (df['y'] + df['cap'] + df['floor'])/3
@@ -106,7 +90,7 @@ def createBollingerBands(df,n=5,m=2):
     return df
 
 
-# In[7]:
+# In[6]:
 
 
 def main():
@@ -121,7 +105,7 @@ def main():
     print('yTest.shape: ', yTest.shape)
 
 
-# In[8]:
+# In[7]:
 
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-{"bestTrainScore": 3665, "bestDevScore": 21839, "bestLSTMUnits1": 45, "bestLSTMUnits2": 30, "bestLSTMUnits3": 122, "bestEpochs": 85}
+{"bestTrainScore": 9763.7958984375, "bestDevScore": 38115.515625, "bestLSTMUnits1": 39, "bestLSTMUnits2": 71, "bestLSTMUnits3": 102, "bestEpochs": 67}
