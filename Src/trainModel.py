@@ -226,22 +226,6 @@ def trainBestExponentialSmoothing(data):
 # In[11]:
 
 
-"""
-def trainProphet(data,saveModelFile=False,params = {'seasonality_mode'='multiplicative'}):
-    if (saveModelFile):
-        print('Training Prophet')
-
-    model = Prophet()
-    model.fit(data)
-    if (saveModelFile):
-        saveModel(model, 'prophet')
-    return model
-"""    
-
-
-# In[12]:
-
-
 def trainBestProphet(data):
     print('Training Prophet')
     train, dev = trainDevSplit(data)
@@ -265,7 +249,7 @@ def trainBestProphet(data):
     return model
 
 
-# In[13]:
+# In[12]:
 
 
 def makeFullProphetPrediction(params,train,data,periods = 5):
@@ -286,19 +270,19 @@ def makeFullProphetPrediction(params,train,data,periods = 5):
     return fullPredict, fullForecast
 
 
-# In[14]:
+# In[13]:
 
 
 def makeSegmentedProphetPrediction(params,data,periods = 5):
     model = Prophet(**params)
     model.fit(data)
     future = model.make_future_dataframe(periods=periods,include_history=False)
-    future['cap'] = data['cap'].iloc[-1]
-    future['floor'] = data['floor'].iloc[-1]
+    future['cap'] = data['BU'].iloc[-1]
+    future['floor'] = data['BL'].iloc[-1]
     return model.predict(future)
 
 
-# In[15]:
+# In[14]:
 
 
 def returnFullForecast(fullForecast,forecast):
@@ -309,7 +293,7 @@ def returnFullForecast(fullForecast,forecast):
     return fullForecast
 
 
-# In[16]:
+# In[15]:
 
 
 def retrieveProphetParams():
@@ -339,7 +323,7 @@ def retrieveProphetParams():
     return chosenParameters
 
 
-# In[17]:
+# In[16]:
 
 
 def trainLSTM(data):
@@ -389,7 +373,7 @@ def trainLSTM(data):
         
 
 
-# In[18]:
+# In[17]:
 
 
 def trainDevSplit(data):
@@ -401,7 +385,7 @@ def trainDevSplit(data):
     return train,dev
 
 
-# In[19]:
+# In[18]:
 
 
 def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
@@ -415,7 +399,7 @@ def compileLSTM(X,y,lstmUnits1,lstmUnits2,lstmUnits3,epochs):
     return model
 
 
-# In[20]:
+# In[19]:
 
 
 def main():
@@ -434,7 +418,7 @@ def main():
         trainLSTM(train['y'])
 
 
-# In[21]:
+# In[20]:
 
 
 if __name__ == '__main__':
